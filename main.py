@@ -372,27 +372,33 @@ class LiGuard:
 
                 # apply the processes
                 for proc in self.pre_processes:
+                    if 'activate_on_key_set' in cfg['proc']['pre'][proc.__name__] and cfg['proc']['pre'][proc.__name__]['activate_on_key_set'] not in self.data_dict: continue
                     try: proc(self.data_dict, cfg)
                     except Exception as e: self.logger.log(f'[main.py->LiGuard->start]: pre_processes failed for {proc}:\n{e}', Logger.ERROR)
             
                 if self.pcd_io:
                     for proc in self.lidar_processes:
+                        if 'activate_on_key_set' in cfg['proc']['lidar'][proc.__name__] and cfg['proc']['lidar'][proc.__name__]['activate_on_key_set'] not in self.data_dict: continue
                         try: proc(self.data_dict, cfg)
                         except Exception as e: self.logger.log(f'[main.py->LiGuard->start]: lidar_processes failed for {proc}:\n{e}', Logger.ERROR)
                 if self.img_io:
                     for proc in self.camera_processes:
+                        if 'activate_on_key_set' in cfg['proc']['camera'][proc.__name__] and cfg['proc']['camera'][proc.__name__]['activate_on_key_set'] not in self.data_dict: continue
                         try: proc(self.data_dict, cfg)
                         except Exception as e: self.logger.log(f'[main.py->LiGuard->start]: camera_processes failed for {proc}:\n{e}', Logger.ERROR)
                 if self.clb_io:
                     for proc in self.calib_processes:
+                        if 'activate_on_key_set' in cfg['proc']['calib'][proc.__name__] and cfg['proc']['calib'][proc.__name__]['activate_on_key_set'] not in self.data_dict: continue
                         try: proc(self.data_dict, cfg)
                         except Exception as e: self.logger.log(f'[main.py->LiGuard->start]: calib_processes failed for {proc}:\n{e}', Logger.ERROR)
                 if self.lbl_io:
                     for proc in self.label_processes:
+                        if 'activate_on_key_set' in cfg['proc']['label'][proc.__name__] and cfg['proc']['label'][proc.__name__]['activate_on_key_set'] not in self.data_dict: continue
                         try: proc(self.data_dict, cfg)
                         except Exception as e: self.logger.log(f'[main.py->LiGuard->start]: label_processes failed for {proc}:\n{e}', Logger.ERROR)
                 
                 for proc in self.post_processes:
+                    if 'activate_on_key_set' in cfg['proc']['post'][proc.__name__] and cfg['proc']['post'][proc.__name__]['activate_on_key_set'] not in self.data_dict: continue
                     try: proc(self.data_dict, cfg)
                     except Exception as e: self.logger.log(f'[main.py->LiGuard->start]: post_processes failed for {proc}:\n{e}', Logger.ERROR)
 

@@ -24,9 +24,6 @@ def create_per_object_pcdet_dataset(data_dict: dict, cfg_dict: dict):
     if "current_label_list" not in data_dict:
         logger.log('[algo->post.py->create_per_object_pcdet_dataset]: current_label_list not found in data_dict', Logger.ERROR)
         return
-    if "current_label_path" not in data_dict:
-        logger.log('[algo->post.py->create_per_object_pcdet_dataset]: current_label_path not found in data_dict', Logger.ERROR)
-        return
     
     # imports
     import os
@@ -36,7 +33,7 @@ def create_per_object_pcdet_dataset(data_dict: dict, cfg_dict: dict):
     # Get required data from data_dict
     current_point_cloud_numpy = data_dict['current_point_cloud_numpy']
     current_label_list = data_dict['current_label_list']
-    current_label_path = data_dict['current_label_path']
+    current_label_path = os.path.basename(data_dict['current_point_cloud_path']).replace(cfg_dict['data']['lidar']['pcd_type'], '.txt')
     
     # Create output directories if they do not exist
     output_path = os.path.join(cfg_dict['data']['path'], 'output', 'post', 'per_object_pcdet_dataset')
@@ -95,9 +92,6 @@ def create_pcdet_dataset(data_dict: dict, cfg_dict: dict):
     if "current_label_list" not in data_dict:
         logger.log('[algo->post.py->create_pcdet_dataset]: current_label_list not found in data_dict', Logger.ERROR)
         return
-    if "current_label_path" not in data_dict:
-        logger.log('[algo->post.py->create_pcdet_dataset]: current_label_path not found in data_dict', Logger.ERROR)
-        return
     
     # imports
     import os
@@ -106,7 +100,7 @@ def create_pcdet_dataset(data_dict: dict, cfg_dict: dict):
     # Get required data from data_dict
     current_point_cloud_numpy = data_dict['current_point_cloud_numpy']
     current_label_list = data_dict['current_label_list']
-    current_label_path = data_dict['current_label_path']
+    current_label_path = os.path.basename(data_dict['current_point_cloud_path']).replace(cfg_dict['data']['lidar']['pcd_type'], '.txt')
     
     # Create output directories if they do not exist
     output_path = os.path.join(cfg_dict['data']['path'], 'output', 'post', 'pcdet_dataset')

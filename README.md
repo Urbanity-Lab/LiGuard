@@ -30,6 +30,9 @@ Lastly, install the dependencies:
 pip install -r requirements.txt
 ```
 
+# Documentation
+The documentation for `LiGuard` is available in the `docs` directory. The documentation is divided into the following sections:
+
 # Usage
 `LiGuard` is designed to help researchers build dynamic point-cloud processing pipelines. It act as an execution engine for I/O, processing, and visualization of both point-cloud and image data. A high-level architecture diagram is given [here](docs/extra/architecture.md). Let's see how to use `LiGuard` with a simple yet intuitive example.
 

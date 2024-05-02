@@ -232,6 +232,7 @@ class BaseConfiguration:
             cfg_gui = gui.Vert(self.em * 0.2, gui.Margins(self.em * 0.2, self.em * 0.2, self.em * 0.2, self.em * 0.2))
             self.__update_config_gui_from_cfg__(self.cfg, cfg_gui, ['cfg'])
             self.generated_config.set_widget(cfg_gui)
+            os.chdir(os.path.abspath(os.path.dirname(__file__)) + "/..")
 
         # Open the configuration file
         read_config_file_dialog = gui.FileDialog(gui.FileDialog.OPEN, "Load Configuration", self.mwin.theme)
@@ -262,6 +263,7 @@ class BaseConfiguration:
             self.__update_cfg_from_gui__(self.cfg, ['cfg'])
             self.save_config(cfg, cfg_path)
             self.mwin.close_dialog()
+            os.chdir(os.path.abspath(os.path.dirname(__file__)) + "/..")
             
         if hasattr(self, 'cfg'):
             # Save the configuration to the specified path

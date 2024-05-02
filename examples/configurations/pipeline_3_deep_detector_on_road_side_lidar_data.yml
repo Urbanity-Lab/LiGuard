@@ -1,0 +1,223 @@
+data:
+  path: examples/data/pipeline_1_and_3
+  lidar_subdir: velodyne
+  camera_subdir: NA
+  label_subdir: NA
+  calib_subdir: NA
+  size: 1000
+  lidar:
+    enabled: true
+    pcd_type: .bin
+  camera:
+    enabled: false
+    img_type: .png
+  calib:
+    enabled: false
+    clb_type: kitti
+  label:
+    enabled: false
+    lbl_type: kitti
+sensors:
+  lidar:
+    enabled: false
+    hostname: 192.168.1.2
+    manufacturer: Ouster
+    model: OS1-64
+    serial_number: '000000000000'
+  camera:
+    enabled: false
+    hostname: 192.168.1.3
+    manufacturer: Flir
+    model: BFS-PGE-16S2C-CS
+    serial_number: '00000000'
+    camera_matrix:
+    - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+    distortion_coeffs:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    T_lidar_camera:
+    - - 1
+      - 0
+      - 0
+      - 0
+    - - 0
+      - 1
+      - 0
+      - 0
+    - - 0
+      - 0
+      - 1
+      - 0
+    - - 0
+      - 0
+      - 0
+      - 1
+proc:
+  pre:
+    dummy:
+      enabled: false
+      priority: 1
+  lidar:
+    crop:
+      priority: 1
+      enabled: true
+      min_xyz:
+      - -40.0
+      - -40.0
+      - -4.0
+      max_xyz:
+      - 40.0
+      - 40.0
+      - 2.0
+    BGFilterSTDF:
+      enabled: false
+      priority: 2
+      number_of_frame_gather_iters: 6
+      number_of_frames_in_each_gather_iter: 10
+      number_of_skip_frames_after_each_iter: 100
+      number_of_points_per_frame: 65536
+      lidar_range_in_unit_length: 100
+      bins_per_unit_length: 2
+      background_density_threshold: 0.5
+    PointPillarDetection:
+      enabled: true
+      activate_on_key_set: current_point_cloud_numpy
+      priority: 7
+      path_to_github_repo: algo/nn/PointPillars
+      score_threshold: 0.5
+    Clusterer_TEPP_DBSCAN:
+      enabled: false
+      activate_on_key_set: current_point_cloud_numpy
+      priority: 3
+      eps: 0.5
+      min_samples: 5
+    Cluster2Object:
+      enabled: false
+      priority: 4
+      oriented: false
+      size_constraints:
+        Pedestrian:
+          base_length:
+          - 0.35
+          - 1.5
+          height:
+          - 1.0
+          - 1.8
+        Cyclist:
+          base_length:
+          - 1.5
+          - 1.75
+          height:
+          - 0.8
+          - 1.6
+        Car:
+          base_length:
+          - 4.0
+          - 4.8
+          height:
+          - 1.6
+          - 1.8
+        Van:
+          base_length:
+          - 5.0
+          - 5.4
+          height:
+          - 2.0
+          - 2.2
+        Truck:
+          base_length:
+          - 4.8
+          - 5.2
+          height:
+          - 2.2
+          - 2.4
+        Bus:
+          base_length:
+          - 10.0
+          - 12.0
+          height:
+          - 3.0
+          - 3.5
+      class_colors:
+        Pedestrian:
+        - 1
+        - 0
+        - 0
+        Cyclist:
+        - 0
+        - 1
+        - 0
+        Car:
+        - 0
+        - 0
+        - 1
+        Van:
+        - 1
+        - 1
+        - 0
+        Truck:
+        - 1
+        - 0
+        - 1
+        Bus:
+        - 0
+        - 1
+        - 1
+    project_image_pixel_colors:
+      enabled: false
+      priority: 5
+  camera:
+    project_point_cloud_points:
+      enabled: false
+      priority: 1
+  calib:
+    dummy:
+      enabled: false
+      priority: 1
+  label:
+    remove_out_of_bound_labels:
+      enabled: true
+      priority: 1
+    remove_less_point_labels:
+      enabled: false
+      priority: 2
+      min_points: 6
+  post:
+    create_per_object_pcdet_dataset:
+      enabled: false
+      priority: 1
+    create_pcdet_dataset:
+      enabled: false
+      priority: 1
+visualization:
+  enabled: true
+  lidar:
+    space_color:
+    - 0
+    - 0
+    - 0
+    bound_color:
+    - 0
+    - 0
+    - 1
+    point_size: 2.0
+  camera:
+    bbox_line_width: 2
+logging:
+  level: 1
+  path: logs
+threads:
+  io_sleep: 0.01
+  proc_sleep: 0.01
+  vis_sleep: 0.01

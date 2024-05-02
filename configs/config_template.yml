@@ -1,7 +1,7 @@
 # This is a LiGuard pipeline configuration file.
 
 data: # dataset configurations
-    path: 'data' # root directory containing dataset
+    path: 'examples/data' # root directory containing dataset
     lidar_subdir: 'lidar' # subdirectory containing point clouds
     camera_subdir: 'camera' # subdirectory containing images
     label_subdir: 'label' # subdirectory containing labels
@@ -15,7 +15,7 @@ data: # dataset configurations
         enabled: False # set True to read images from disk
         img_type: '.png' # most image types are supported
     calib:
-        enabled: True # set True to read calibration files from disk
+        enabled: False # set True to read calibration files from disk
         clb_type: 'kitti' # can be kitti or sustechpoints
     label:
         enabled: False # set True to read labels from disk
@@ -34,9 +34,9 @@ sensors: # lidar and camera configurations
         manufacturer: 'Flir' # sensor manufacturer
         model: 'BFS-PGE-16S2C-CS' # sensor model
         serial_number: '00000000' # sensor serial number
-        camera_matrix: [2552.449042506032, 0.0, 766.5504021841039, 0.0, 2554.320087252825, 553.0299764355634, 0.0, 0.0, 1.0] # camera matrix (K)
-        distortion_coeffs: [-0.368698, 0.042837, -0.002189, -0.000758, 0.000000] # distortion coefficients (D)
-        T_lidar_camera: [[-0.00315, 0.00319, 0.99999, -0.17392], [-0.99985, -0.01715, -0.00309, 0.00474], [0.01714, -0.99985, 0.00324, -0.05174], [0.00000, 0.00000, 0.00000, 1.00000]] # 4x4 transformation matrix from camera to lidar
+        camera_matrix: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] # camera matrix (K)
+        distortion_coeffs: [0, 0, 0, 0, 0] # distortion coefficients (D)
+        T_lidar_camera: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]] # 4x4 transformation matrix from camera to lidar
 
 proc: # liguard processing configurations
     pre:
@@ -49,9 +49,55 @@ proc: # liguard processing configurations
             enabled: False # set True to crop point cloud
             min_xyz: [-40.0, -40.0, -4.0] # minimum x, y, z
             max_xyz: [+40.0, +40.0, +2.0] # maximum x, y, z
+        BGFilterSTDF: # Spatio-Temporal Density Filter
+            enabled: False # set True to filter background using Simple Density Filter Filter
+            priority: 2 # priority of process - lower is higher
+            number_of_frame_gather_iters: 6 # number of iterations to gather frames
+            number_of_frames_in_each_gather_iter: 10 # number of frames gathered in each iteration
+            number_of_skip_frames_after_each_iter: 100 # number of frames to skip after each iteration
+            number_of_points_per_frame: 65536 # number of points in each point cloud
+            lidar_range_in_unit_length: 100 # maximum range of lidar in lidar unit length
+            bins_per_unit_length: 2 # number of bins per unit length
+            background_density_threshold: 0.5 # threshold that tells if a bin is dense enough to be considered as background
+        Clusterer_TEPP_DBSCAN: # Theoretically Efficient and Practical Parallel DBSCAN point clustering algorithm
+            enabled: False # set True to cluster point cloud using TEPP DBSCAN
+            activate_on_key_set: 'current_point_cloud_numpy' # activates as soon as this key is available in data_dict, it can be set by any other process to activate this process
+            priority: 3 # priority of process - lower is higher
+            eps: 0.5 # maximum radius to search
+            min_samples: 5 # minimum number of points to consider a cluster valid
+        Cluster2Object:
+            enabled: False
+            priority: 4
+            oriented: False
+            size_constraints: # in increasing order of base lengths, units in meters, left inclusive, right exclusive
+                Pedestrian:
+                    base_length: [0.35, 1.5]
+                    height: [1.0, 1.8]
+                Cyclist:
+                    base_length: [1.5, 1.75]
+                    height: [0.8, 1.6]
+                Car:
+                    base_length: [4.0, 4.8]
+                    height: [1.6, 1.8]
+                Van:
+                    base_length: [5.0, 5.4]
+                    height: [2.0, 2.2]
+                Truck:
+                    base_length: [4.8, 5.2]
+                    height: [2.2, 2.4]
+                Bus:
+                    base_length: [10.0, 12.0]
+                    height: [3.0, 3.5]
+            class_colors: # in RGB format 
+                Pedestrian: [1, 0, 0]
+                Cyclist: [0, 1, 0]
+                Car: [0, 0, 1]
+                Van: [1, 1, 0]
+                Truck: [1, 0, 1]
+                Bus: [0, 1, 1]
         project_image_pixel_colors:
             enabled: False # set True to paint point cloud with rgb
-            priority: 2 # priority of process - lower is higher
+            priority: 5 # priority of process - lower is higher
     camera:
         project_point_cloud_points: # project point cloud points to camera image
             enabled: False # set True to project point cloud points to camera image
@@ -64,6 +110,10 @@ proc: # liguard processing configurations
         remove_out_of_bound_labels: # crop out of bound bboxes
             enabled: False # set True to crop labels
             priority: 1 # priority of process - lower is higher
+        remove_less_point_labels: # remove labels with no points
+            enabled: False # set True to remove labels
+            priority: 2 # priority of process - lower is higher
+            min_points: 6 # minimum number of points to consider a label valid
     post:
         create_per_object_pcdet_dataset: # create per object dataset in pcdet format
             enabled: False # set True to enable
@@ -75,14 +125,14 @@ proc: # liguard processing configurations
 visualization: # visualization parameters
     enabled: True # set True to visualize
     lidar:
-        space_color: [0, 0, 0] # color of background space
+        space_color: [0, 0, 0] # color of non-point-cloud space
         bound_color: [0, 0, 1] # point cloud range bound bbox color
         point_size: 2.0 # rendered point size
     camera:
         bbox_line_width: 2 # bbox line width
 
 logging: # parameters for logger
-    level: 0 # log level can be 0 (DEBUG), 1 (INFO), 2 (WARNING), 3 (ERROR), 4 (CRITICAL
+    level: 1 # log level can be 0 (DEBUG), 1 (INFO), 2 (WARNING), 3 (ERROR), 4 (CRITICAL
     path: 'logs' # path to save logs
         
 threads: # don't change unless debugging
